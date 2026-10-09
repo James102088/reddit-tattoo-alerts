@@ -1,0 +1,38 @@
+name: Reddit tattoo rec monitor
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # GitHub may delay scheduled runs by several minutes
+  workflow_dispatch: {}       # "Run workflow" button for manual testing
+
+permissions:
+  contents: write             # needed to commit seen.json
+
+concurrency:
+  group: monitor
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check subreddits
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+        run: python monitor.py
+
+      - name: Save seen posts
+        run: |
+          git config user.name "tattoo-monitor-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add seen.json
+          git diff --cached --quiet || (git commit -m "update seen posts [skip ci]" && git push)
