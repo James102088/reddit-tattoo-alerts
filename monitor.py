@@ -107,7 +107,7 @@ def check(post, rules):
     hit = any_match(CONFIG["request_patterns"], text)
     if not hit:
         return None
-    if rules.get("require_tattoo_mention") and not rany_match(CONFIG["tattoo_patterns"], text):
+    if rules.get("require_tattoo_mention") and not any_match(CONFIG["tattoo_patterns"], text):
         return None
     if rules.get("require_nyc_mention") and not any_match(CONFIG["nyc_patterns"], text):
         return None
